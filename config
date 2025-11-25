@@ -1,0 +1,4 @@
+MAIN_FIFO=./tmp/fifo-main
+SLAVE_FIFO_PREFIX=./tmp/sclav-
+CLIENT_FIFO_PREFIX=tmp/server-reply-
+NUM_SLAVES=10
