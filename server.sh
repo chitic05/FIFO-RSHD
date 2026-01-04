@@ -4,7 +4,10 @@
 source ./config  
 
 # Curatare la Ctrl+C kill 0 omoara procesele create de acest script
-trap "rm -f $MAIN_FIFO ${SLAVE_FIFO_PREFIX}*; kill 0" SIGINT
+trap "rm -r -f tmp; kill 0" SIGINT
+trap "rm -rf tmp; kill 0" EXIT
+
+mkdir tmp
 
 # Creare FIFO-MAIN
 if [ ! -p "$MAIN_FIFO" ]; then

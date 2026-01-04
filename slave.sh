@@ -21,7 +21,6 @@ while true; do
             
             # -p verifica daca exista fifo ul respectiv
             if [ -p "$client_fifo" ]; then
-                # 2>&1 redirectioneaza si stderr in fifo
                 # eval executa comanda $cmd cu toate caracterele
 
                 eval "$cmd" > "$client_fifo" 2>&1 # 2>&1 redirectioneaza erorile stderr in fifo ul $client_fifo
