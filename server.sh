@@ -3,18 +3,8 @@
 
 source ./config  
 
-# Functie de curatare sigura
-function cleanup {
-    echo "Oprire server..."
-    # Ignoram erorile daca nu sunt procese de omorat
-    kill 0 2>/dev/null 
-    wait # Asteptam ca sclavii sa se inchida
-    rm -rf "$BASE_DIR" # Stergem tot folderul tmp
-    exit
-}
-
-# Prindem semnalele
-trap cleanup SIGINT EXIT
+# Sterge tmp si termina procesele 
+trap "rm -rf ./tmp; kill 0" SIGINT EXIT
 
 # Cream directorul tmp daca nu exista
 if [ ! -d "$BASE_DIR" ]; then
@@ -54,7 +44,7 @@ while read -r line <&3; do
     target_pipe="${SLAVE_FIFO_PREFIX}${slave_id}"
 
     # Folosim & pentru a nu bloca bucla principala
-    printf '%s\n' "$line" > "$target_pipe" &
+    echo "$line" > "$target_pipe" &
 
     counter=$((counter + 1))
 done

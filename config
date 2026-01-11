@@ -3,7 +3,7 @@
 BASE_DIR="tmp"
 
 # Numarul de sclavi
-NUM_SLAVES=90
+NUM_SLAVES=3
 
 # Calea catre FIFO-ul principal
 MAIN_FIFO="${BASE_DIR}/main_fifo"
