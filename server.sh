@@ -3,16 +3,30 @@
 
 source ./config  
 
-# Curatare la Ctrl+C kill 0 omoara procesele create de acest script
-trap "rm -r -f tmp; kill 0" SIGINT
-trap "rm -rf tmp; kill 0" EXIT
+# Functie de curatare sigura
+function cleanup {
+    echo "Oprire server..."
+    # Ignoram erorile daca nu sunt procese de omorat
+    kill 0 2>/dev/null 
+    wait # Asteptam ca sclavii sa se inchida
+    rm -rf "$BASE_DIR" # Stergem tot folderul tmp
+    exit
+}
 
-mkdir tmp
+# Prindem semnalele
+trap cleanup SIGINT EXIT
+
+# Cream directorul tmp daca nu exista
+if [ ! -d "$BASE_DIR" ]; then
+    mkdir -p "$BASE_DIR"
+fi
 
 # Creare FIFO-MAIN
 if [ ! -p "$MAIN_FIFO" ]; then
     mkfifo "$MAIN_FIFO"
 fi
+
+echo "Server pornit. Se initializeaza $NUM_SLAVES sclavi..."
 
 # Pregatim sclavii
 for ((i=0; i<NUM_SLAVES; i++)); do
@@ -28,16 +42,19 @@ done
 
 counter=0
 
-# tail -f citeste continuu din FIFO-MAIN
-tail -f "$MAIN_FIFO" | while read -r line; do
-    if [ -n "$line" ]; then
-        slave_id=$((counter % NUM_SLAVES))
-        target_pipe="${SLAVE_FIFO_PREFIX}${slave_id}"
-        
-        
-        # Trimitem linia catre sclav
-        echo "$line" > "$target_pipe" &
-        
-        counter=$((counter + 1))
-    fi
+# Deschidem pipe-ul in mod Read+Write (<>)
+exec 3<>"$MAIN_FIFO"
+
+echo "Astept comenzi..."
+# Citeste din canalul 3 (e custom)
+while read -r line <&3; do
+    [ -z "$line" ] && continue
+
+    slave_id=$((counter % NUM_SLAVES))
+    target_pipe="${SLAVE_FIFO_PREFIX}${slave_id}"
+
+    # Folosim & pentru a nu bloca bucla principala
+    printf '%s\n' "$line" > "$target_pipe" &
+
+    counter=$((counter + 1))
 done

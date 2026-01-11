@@ -1,4 +1,13 @@
-MAIN_FIFO=./tmp/fifo-main
-SLAVE_FIFO_PREFIX=./tmp/sclav-
-CLIENT_FIFO_PREFIX=tmp/server-reply-
-NUM_SLAVES=2
+# config
+# Definim folderul de baza
+BASE_DIR="tmp"
+
+# Numarul de sclavi
+NUM_SLAVES=90
+
+# Calea catre FIFO-ul principal
+MAIN_FIFO="${BASE_DIR}/main_fifo"
+
+# Prefixele pentru FIFO-uri (includ folderul tmp/)
+SLAVE_FIFO_PREFIX="${BASE_DIR}/slave_"
+CLIENT_FIFO_PREFIX="${BASE_DIR}/server-reply-"

@@ -9,18 +9,19 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-COMMAND="$@"      #toate comenzile date ca argumente 
-CLIENT_PID=$$         # $$ este PID-ul clientului
-REPLY_FIFO="tmp/server-reply-${CLIENT_PID}"
+COMMAND="$@"
+CLIENT_PID=$$
 
-#Facem FIFO-ul clientului 
+# Construim numele FIFO folosind prefixul din config
+REPLY_FIFO="${CLIENT_FIFO_PREFIX}${CLIENT_PID}"
+
+# Facem FIFO-ul clientului 
 if [ ! -p "$REPLY_FIFO" ]; then
     mkfifo "$REPLY_FIFO"
 fi
 
-
-trap "rm -f $REPLY_FIFO" EXIT # daca scriptul se termina, indiferent de modalitate, se sterge FIFO-ul
-
+# Curatare la iesire
+trap "rm -f $REPLY_FIFO" EXIT
 
 REQUEST_MSG="BEGIN-REQ [${CLIENT_PID}: ${COMMAND}] END-REQ"
 
@@ -28,12 +29,12 @@ if [ -p "$MAIN_FIFO" ]; then
     # Scriem in FIFO-ul serverului
     echo "$REQUEST_MSG" > "$MAIN_FIFO"
 else
-    echo "Eroare: Serverul nu este pornit."
+    echo "Eroare: Serverul nu este pornit (Nu gasesc $MAIN_FIFO)."
     exit 1
 fi
 
-echo "[Client ${CLIENT_PID}] Astept rezultatul..."
+echo "[Client ${CLIENT_PID}] Am trimis comanda. Astept rezultatul..."
 echo "---------------- REZULTAT SERVER ----------------"
 
-# 'cat' va bloca executia pana cand serverul incepe sa scrie in FIFO
+# 'cat' va bloca executia pana cand serverul (sclavul) scrie in FIFO
 cat "$REPLY_FIFO"
